@@ -84,6 +84,11 @@
             "type": "boolean",
             "default": false
           },
+          "review.preview.stylesheet": {
+            "description": "File name or path of css file to be applied to preview window.",
+            "type": "string",
+            "default": "stylesheet.css"
+          },
           "review.preview.watchIntervalMS": {
             "description": "Watch and refresh interval of preview window to reflect document changes, in milliseconds.",
             "type": "integer",
