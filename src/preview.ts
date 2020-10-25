@@ -30,6 +30,22 @@ class ReviewSymbolProvider implements vscode.DocumentSymbolProvider, vscode.Disp
 	}
 }
 
+interface Configuration {
+	readonly draftMode: boolean;
+	readonly watchIntervalMS: number;
+}
+
+function getConfiguration () : Configuration {
+	// Specify first segment of properties which is defined in package.json/contributes/configuration
+	const vsconfig = vscode.workspace.getConfiguration ("review");
+
+	// Specify remaining segments of properties here:
+	return {
+		draftMode: vsconfig.get<boolean> ("preview.draftMode") ?? false,
+		watchIntervalMS: vsconfig.get<number> ("preview.watchIntervalMS") ?? 1000
+	}
+}
+
 function convert_review_doc_to_html (document: vscode.TextDocument, getAssetUri: (...relPath: string[]) => vscode.Uri): Promise<string> {
 	const docFileName = path.basename(document.fileName);
 
@@ -140,7 +156,7 @@ function processDocument (document: vscode.TextDocument): Promise<review.Book> {
 	}
 
 	const options = {
-		draft: false,
+		draft: getConfiguration().draftMode,
 		inproc: true
 	};
 
@@ -379,7 +395,7 @@ function startPreview (uri: vscode.Uri, context: vscode.ExtensionContext) {
 		failureReason => webView.webview.html = failureReason);
 
 	var last_changed_event: vscode.TextDocumentChangeEvent = null;
-	var timer = setInterval(() => maybeUpdatePreview (last_changed_event, getAssetUri), 1000);
+	var timer = setInterval(() => maybeUpdatePreview (last_changed_event, getAssetUri), getConfiguration().watchIntervalMS);
 	vscode.workspace.onDidChangeTextDocument (e => last_changed_event = e);
 
 	webView.onDidDispose(()=> {
